@@ -170,12 +170,29 @@
   .dash-top-panel{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:16px; }
   .streak-header{ display:flex; align-items:center; gap:8px; margin-bottom:14px; font-size:15px; font-weight:600; color:var(--text); }
   .streak-fire{ font-size:20px; animation:flicker 2s infinite alternate; display:inline-block; }
+  .cal-stats-row{ display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:14px; }
+  .cal-stat{ font-size:13px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:6px; }
+  .cal-stat-divider{ width:1px; height:16px; background:var(--border); }
+  .cal-mode-switch{ display:flex; background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:3px; margin-bottom:14px; }
+  .cal-mode-btn{ flex:1; background:transparent; color:var(--text-dim); font-size:12px; font-weight:600; padding:7px 0; border-radius:7px; }
+  .cal-mode-btn.active{ background:var(--accent); color:#fff; }
+  .cal-nav{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .cal-nav-btn{ background:var(--surface-2); color:var(--text); width:28px; height:28px; border-radius:50%; font-size:16px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); }
+  .cal-nav-btn:active{ background:var(--border); }
+  .cal-month-label{ font-weight:600; font-size:14px; text-transform:capitalize; }
   .cal-grid{ display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; text-align:center; }
   .cal-day-label{ font-size:10px; color:var(--text-dim); font-weight:600; margin-bottom:4px; }
-  .cal-day{ font-size:12px; padding:6px 0; border-radius:6px; background:var(--surface-2); color:var(--text); position:relative; }
-  .cal-day.empty{ background:transparent; color:transparent; }
+  .cal-day-cell{ display:flex; flex-direction:column; align-items:center; gap:2px; min-height:36px; }
+  .cal-day{ font-size:12px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--surface-2); color:var(--text); }
   .cal-day.trained{ background:var(--accent-glow); border:1px solid var(--accent); color:var(--accent); font-weight:700; }
-  .cal-day.today{ border-bottom:2px solid var(--text); }
+  .cal-day.today{ box-shadow:0 0 0 2px var(--text) inset; }
+  .cal-day-tag{ font-size:8px; color:var(--text-dim); text-align:center; line-height:1.1; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .year-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:12px; }
+  .year-month-block{ background:var(--surface-2); border:1px solid var(--border); border-radius:8px; padding:8px; }
+  .year-month-label{ font-size:11px; color:var(--text-dim); font-weight:600; text-transform:capitalize; margin-bottom:6px; text-align:center; }
+  .year-dots{ display:grid; grid-template-columns:repeat(7, 1fr); gap:2px; }
+  .year-dot{ width:100%; aspect-ratio:1; border-radius:2px; background:var(--border); }
+  .year-dot.trained{ background:var(--accent); }
 
   .picker-overlay{ position:fixed; inset:0; background:rgba(5,8,13,0.8); display:flex; align-items:flex-end; justify-content:center; z-index:100; animation:fadeInOverlay 0.2s ease forwards; }
   .picker-sheet{ background:var(--surface); border-radius:20px 20px 0 0; width:100%; max-width:480px; max-height:85vh; display:flex; flex-direction:column; border-top:1px solid var(--border); padding:16px; animation:slideUpSheet 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -322,6 +339,7 @@ function getExerciseCategory(exName){
 
 let exercises = [], workouts = [], routines = [], active = null;
 let currentTab = 'train', expandedWorkoutId = null, routineDraft = null;
+let calendarViewMode = 'month', calendarViewDate = new Date();
 let timerInterval = null, restInterval = null, restSecondsRemaining = 0;
 let currentTheme = 'copper';
 
@@ -881,36 +899,104 @@ function renderRoutineEditor(){
 }
 
 // ---- HISTORIAL ----
-function getCalendarHTML(){
+function getWorkoutsByDateKey(){
+  const map = {};
+  workouts.forEach(w=>{
+    const d = new Date(w.date);
+    const key = d.getFullYear()+'-'+d.getMonth()+'-'+d.getDate();
+    if(!map[key]) map[key] = [];
+    map[key].push(w.name);
+  });
+  return map;
+}
+
+function calculateRestDaysInView(){
+  if(calendarViewMode !== 'month') return null;
+  const year = calendarViewDate.getFullYear(), month = calendarViewDate.getMonth();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const monthStart = new Date(year, month, 1);
+  if(monthStart > today) return null; // mes futuro, sin datos todavía
+  const isCurrentMonth = today.getFullYear()===year && today.getMonth()===month;
+  const lastDay = isCurrentMonth ? today.getDate() : daysInMonth;
+  const byDate = getWorkoutsByDateKey();
+  let trainedCount = 0;
+  for(let d=1; d<=lastDay; d++){ if(byDate[year+'-'+month+'-'+d]) trainedCount++; }
+  return Math.max(0, lastDay - trainedCount);
+}
+
+function getMonthCalendarHTML(viewDate){
+  const year = viewDate.getFullYear(), month = viewDate.getMonth();
+  const jsFirstDay = new Date(year, month, 1).getDay(); // 0=Dom
+  const firstDayMon = (jsFirstDay + 6) % 7; // 0=Lun
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthLabel = viewDate.toLocaleDateString('es-AR', {month:'long', year:'numeric'}).replace(/^\w/, c => c.toUpperCase());
+  const byDate = getWorkoutsByDateKey();
   const today = new Date();
-  const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-  const monthName = today.toLocaleDateString('es-AR', {month:'long', year:'numeric'}).replace(/^\w/, c => c.toUpperCase());
-  const trainedDays = new Set(workouts.map(w => new Date(w.date).getDate() + '-' + new Date(w.date).getMonth()));
-  const currentMonth = today.getMonth();
-  let grid = `<div style="text-align:center; font-weight:600; margin-bottom:10px;">${monthName}</div><div class="cal-grid">`;
-  const days = ['D','L','M','M','J','V','S'];
-  days.forEach(d => grid += `<div class="cal-day-label">${d}</div>`);
-  for(let i=0; i<firstDay; i++) grid += `<div class="cal-day empty"></div>`;
+
+  let html = `<div class="cal-nav">
+    <button class="cal-nav-btn" id="calPrev">‹</button>
+    <div class="cal-month-label">${monthLabel}</div>
+    <button class="cal-nav-btn" id="calNext">›</button>
+  </div><div class="cal-grid">`;
+  const dayLabels = ['L','M','M','J','V','S','D'];
+  dayLabels.forEach(d => html += `<div class="cal-day-label">${d}</div>`);
+  for(let i=0; i<firstDayMon; i++) html += `<div class="cal-day-cell"></div>`;
   for(let i=1; i<=daysInMonth; i++){
-    const isTrained = trainedDays.has(i + '-' + currentMonth);
-    const isToday = i === today.getDate();
-    grid += `<div class="cal-day ${isTrained ? 'trained' : ''} ${isToday ? 'today':''}">${i}</div>`;
+    const key = year+'-'+month+'-'+i;
+    const names = byDate[key];
+    const isTrained = !!names;
+    const isToday = today.getFullYear()===year && today.getMonth()===month && today.getDate()===i;
+    const tag = isTrained ? `<div class="cal-day-tag">${escapeHtml((names[0]||'').slice(0,9))}</div>` : '';
+    html += `<div class="cal-day-cell"><div class="cal-day ${isTrained ? 'trained' : ''} ${isToday ? 'today':''}">${i}</div>${tag}</div>`;
   }
-  grid += `</div>`;
-  return grid;
+  html += `</div>`;
+  return html;
+}
+
+function getYearCalendarHTML(year){
+  const byDate = getWorkoutsByDateKey();
+  const monthsAbbr = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  let html = `<div class="cal-nav">
+    <button class="cal-nav-btn" id="calPrev">‹</button>
+    <div class="cal-month-label">${year}</div>
+    <button class="cal-nav-btn" id="calNext">›</button>
+  </div><div class="year-grid">`;
+  for(let m=0; m<12; m++){
+    const daysInMonth = new Date(year, m+1, 0).getDate();
+    let dots = '';
+    for(let d=1; d<=daysInMonth; d++){
+      const trained = !!byDate[year+'-'+m+'-'+d];
+      dots += `<div class="year-dot ${trained?'trained':''}"></div>`;
+    }
+    html += `<div class="year-month-block"><div class="year-month-label">${monthsAbbr[m]}</div><div class="year-dots">${dots}</div></div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+function renderCalendarPanel(){
+  const streak = calculateStreak();
+  const restDays = calculateRestDaysInView();
+  const body = calendarViewMode === 'month' ? getMonthCalendarHTML(calendarViewDate) : getYearCalendarHTML(calendarViewDate.getFullYear());
+  return `<div class="dash-top-panel">
+    <div class="cal-stats-row">
+      <div class="cal-stat"><span>🔥</span> Racha de ${streak} semana${streak!==1?'s':''}</div>
+      ${restDays !== null ? `<div class="cal-stat-divider"></div><div class="cal-stat"><span>🌙</span> ${restDays} día${restDays!==1?'s':''} de descanso</div>` : ''}
+    </div>
+    <div class="cal-mode-switch">
+      <button class="cal-mode-btn ${calendarViewMode==='month'?'active':''}" data-cal-mode="month">Mes</button>
+      <button class="cal-mode-btn ${calendarViewMode==='year'?'active':''}" data-cal-mode="year">Año</button>
+    </div>
+    ${body}
+  </div>`;
 }
 
 function renderHistory(){
   let html = '';
-  const streak = calculateStreak();
-  html += `<div class="dash-top-panel">
-    <div class="streak-header"><span class="streak-fire">🔥</span> Racha actual: ${streak} semana${streak!==1?'s':''}</div>
-    <div style="font-size:11px; color:var(--text-dim); margin-bottom:14px;">Entrenando al menos 3 veces por semana.</div>
-    ${getCalendarHTML()}
-  </div>`;
+  html += renderCalendarPanel();
 
-  if(workouts.length === 0){ html += `<div class="empty-state"><div class="big">Sin historial todavía</div></div>`; mainEl.innerHTML = html; return; }
+  if(workouts.length === 0){ html += `<div class="empty-state"><div class="big">Sin historial todavía</div></div>`; mainEl.innerHTML = html; bindCalendarControls(); return; }
 
   workouts.forEach(w=>{
     const totalVolume = w.exercises.reduce((acc,ex)=> acc + ex.sets.reduce((a,s)=> a + (s.type!=='W'?(s.weight*s.reps):0),0), 0);
@@ -950,6 +1036,25 @@ function renderHistory(){
   mainEl.querySelectorAll('[data-toggle]').forEach(el=> el.addEventListener('click', (e)=>{ if(e.target.tagName === 'BUTTON') return; expandedWorkoutId = expandedWorkoutId === el.dataset.toggle ? null : el.dataset.toggle; renderHistory(); }));
   mainEl.querySelectorAll('[data-edit-workout]').forEach(b=> b.addEventListener('click', (e)=>{ e.stopPropagation(); const w = workouts.find(x => x.id === b.dataset.editWorkout); const nn = prompt("Editar nombre:", w.name); if(nn && nn.trim()){ w.name = nn.trim(); saveWorkouts(); renderHistory(); } }));
   mainEl.querySelectorAll('[data-repeat-workout]').forEach(b=> b.addEventListener('click', (e)=>{ e.stopPropagation(); repeatWorkout(b.dataset.repeatWorkout); }));
+  bindCalendarControls();
+}
+
+function bindCalendarControls(){
+  const prevBtn = document.getElementById('calPrev');
+  const nextBtn = document.getElementById('calNext');
+  if(prevBtn) prevBtn.addEventListener('click', ()=>{
+    calendarViewDate = calendarViewMode === 'month'
+      ? new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() - 1, 1)
+      : new Date(calendarViewDate.getFullYear() - 1, calendarViewDate.getMonth(), 1);
+    renderHistory();
+  });
+  if(nextBtn) nextBtn.addEventListener('click', ()=>{
+    calendarViewDate = calendarViewMode === 'month'
+      ? new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() + 1, 1)
+      : new Date(calendarViewDate.getFullYear() + 1, calendarViewDate.getMonth(), 1);
+    renderHistory();
+  });
+  document.querySelectorAll('[data-cal-mode]').forEach(b=> b.addEventListener('click', ()=>{ calendarViewMode = b.dataset.calMode; renderHistory(); }));
 }
 
 // ---- RÉCORDS ----
