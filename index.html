@@ -89,7 +89,6 @@
   @keyframes fadeInUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
   @keyframes shakeInvalid { 10%,90%{transform:translateX(-1px);} 20%,80%{transform:translateX(2px);} 30%,50%,70%{transform:translateX(-4px);} 40%,60%{transform:translateX(4px);} }
   @keyframes popIn { 0%{transform:scale(0.85); opacity:0;} 100%{transform:scale(1); opacity:1;} }
-  @keyframes flicker{ 0%{transform:scale(1);} 100%{transform:scale(1.15);} }
   @keyframes fadeInOverlay { from { opacity:0; } to { opacity:1; } }
   @keyframes slideUpSheet { from { transform:translateY(100%); } to { transform:translateY(0); } }
   @keyframes scaleUpModal { from { opacity:0; transform:scale(0.92); } to { opacity:1; transform:scale(1); } }
@@ -179,11 +178,8 @@
   .add-set-hevy:active{ background:var(--border); }
   .add-exercise-btn{ background:var(--surface); border:1px dashed var(--border); color:var(--accent); font-weight:600; font-size:14px; padding:14px; width:100%; margin-bottom:16px; border-radius:var(--radius); }
   .add-exercise-btn:active{ background:var(--surface-2); }
-  .hint-row{ font-size:11px; color:var(--text-dim); margin:-6px 0 10px 2px; }
 
   .dash-top-panel{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:16px; }
-  .streak-header{ display:flex; align-items:center; gap:8px; margin-bottom:14px; font-size:15px; font-weight:600; color:var(--text); }
-  .streak-fire{ font-size:20px; animation:flicker 2s infinite alternate; display:inline-block; }
   .cal-stats-row{ display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:14px; }
   .cal-stat{ font-size:13px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:6px; }
   .cal-stat-divider{ width:1px; height:16px; background:var(--border); }
@@ -280,7 +276,6 @@
   .btn-icon:disabled{ opacity:0.3; pointer-events:none; }
 
   .pr-global-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; animation:popIn 0.25s ease; }
-  .select-wrap select{ width:100%; background:var(--surface); border:1px solid var(--border); color:var(--text); padding:12px; border-radius:var(--radius); font-size:14px; margin-bottom:16px; outline:none; }
   .pr-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; }
   .pr-card .pr-label{ font-size:12px; color:var(--text-dim); }
   .pr-card .pr-value{ font-size:22px; color:var(--gold); font-weight:700; margin-top:2px; }
@@ -353,11 +348,17 @@
 <script>
 const EXERCISE_CATALOG = [
   { name: "Press de banca plano", cat: "Pecho" }, { name: "Press inclinado con mancuernas", cat: "Pecho" }, { name: "Aperturas en polea", cat: "Pecho" }, { name: "Fondos en paralelas (Pecho)", cat: "Pecho" }, { name: "Press declinado", cat: "Pecho" },
+  { name: "Press de banca con mancuernas", cat: "Pecho" }, { name: "Press de pecho en máquina", cat: "Pecho" }, { name: "Cruce de poleas", cat: "Pecho" }, { name: "Flexiones de brazos", cat: "Pecho" }, { name: "Aperturas con mancuernas", cat: "Pecho" },
   { name: "Dominadas", cat: "Espalda" }, { name: "Remo con barra", cat: "Espalda" }, { name: "Jalón al pecho en polea", cat: "Espalda" }, { name: "Remo en polea baja", cat: "Espalda" }, { name: "Pull-over en polea", cat: "Espalda" },
+  { name: "Remo en máquina", cat: "Espalda" }, { name: "Remo con mancuerna a un brazo", cat: "Espalda" }, { name: "Remo en T", cat: "Espalda" }, { name: "Jalón con agarre cerrado", cat: "Espalda" }, { name: "Hiperextensiones", cat: "Espalda" },
   { name: "Sentadilla libre", cat: "Piernas" }, { name: "Peso muerto convencional", cat: "Piernas" }, { name: "Prensa de piernas 45°", cat: "Piernas" }, { name: "Extensiones de cuádriceps", cat: "Piernas" }, { name: "Curl femoral tumbado", cat: "Piernas" }, { name: "Elevación de talones (Gemelos)", cat: "Piernas" }, { name: "Hip Thrust", cat: "Piernas" },
+  { name: "Zancadas con mancuernas", cat: "Piernas" }, { name: "Sentadilla búlgara", cat: "Piernas" }, { name: "Peso muerto rumano", cat: "Piernas" }, { name: "Sentadilla frontal", cat: "Piernas" }, { name: "Zancada caminando", cat: "Piernas" }, { name: "Puente de glúteos", cat: "Piernas" }, { name: "Sentadilla goblet", cat: "Piernas" }, { name: "Curl femoral sentado", cat: "Piernas" }, { name: "Peso muerto sumo", cat: "Piernas" }, { name: "Buenos días", cat: "Piernas" }, { name: "Patada de glúteo en polea", cat: "Piernas" },
   { name: "Press militar con barra", cat: "Hombros" }, { name: "Elevaciones laterales con mancuernas", cat: "Hombros" }, { name: "Press Arnold", cat: "Hombros" }, { name: "Pájaros (Posteriores)", cat: "Hombros" }, { name: "Encogimientos de hombros con mancuernas", cat: "Hombros" },
+  { name: "Press de hombros con mancuernas", cat: "Hombros" }, { name: "Elevación frontal con mancuernas", cat: "Hombros" }, { name: "Face pull", cat: "Hombros" }, { name: "Elevación lateral en polea", cat: "Hombros" }, { name: "Pájaro con mancuernas inclinado", cat: "Hombros" }, { name: "Remo al mentón", cat: "Hombros" },
   { name: "Curl de bíceps con barra", cat: "Brazos" }, { name: "Curl de bíceps con mancuernas tipo martillo", cat: "Brazos" }, { name: "Curl de bíceps en polea", cat: "Brazos" }, { name: "Extensiones de tríceps en polea", cat: "Brazos" }, { name: "Press francés con barra Z", cat: "Brazos" }, { name: "Extensiones de tríceps por encima de la cabeza", cat: "Brazos" },
-  { name: "Plancha abdominal", cat: "Core" }, { name: "Elevación de piernas colgado", cat: "Core" }, { name: "Crunch en polea", cat: "Core" }
+  { name: "Curl concentrado", cat: "Brazos" }, { name: "Curl en banco Scott", cat: "Brazos" }, { name: "Press francés con mancuerna", cat: "Brazos" }, { name: "Fondos en banco (Tríceps)", cat: "Brazos" }, { name: "Patada de tríceps", cat: "Brazos" }, { name: "Press cerrado con barra", cat: "Brazos" }, { name: "Curl inverso con barra", cat: "Brazos" },
+  { name: "Plancha abdominal", cat: "Core" }, { name: "Elevación de piernas colgado", cat: "Core" }, { name: "Crunch en polea", cat: "Core" },
+  { name: "Rueda abdominal", cat: "Core" }, { name: "Elevación de piernas en banco", cat: "Core" }, { name: "Giro ruso", cat: "Core" }, { name: "Plancha lateral", cat: "Core" }
 ];
 
 const PREDEFINED_ROUTINES = [
@@ -382,11 +383,17 @@ const MUSCLE_COLOR = { push: "#EB5757", pull: "#9B51E0", accent: "#F2994A", calf
 // Mapea cada ejercicio del catálogo a una sub-zona muscular específica (no solo la categoría general).
 const EXERCISE_ICON_MAP = {
   'Press de banca plano': 'chest_mid', 'Press inclinado con mancuernas': 'chest_upper', 'Aperturas en polea': 'chest_mid', 'Fondos en paralelas (Pecho)': 'chest_lower', 'Press declinado': 'chest_lower',
+  'Press de banca con mancuernas': 'chest_mid', 'Press de pecho en máquina': 'chest_mid', 'Cruce de poleas': 'chest_mid', 'Flexiones de brazos': 'chest_mid', 'Aperturas con mancuernas': 'chest_mid',
   'Dominadas': 'back_lats', 'Remo con barra': 'back_mid', 'Jalón al pecho en polea': 'back_lats', 'Remo en polea baja': 'back_mid', 'Pull-over en polea': 'back_lats',
+  'Remo en máquina': 'back_mid', 'Remo con mancuerna a un brazo': 'back_mid', 'Remo en T': 'back_mid', 'Jalón con agarre cerrado': 'back_lats', 'Hiperextensiones': 'back_mid',
   'Sentadilla libre': 'legs_quads_glutes', 'Peso muerto convencional': 'legs_hamstrings_glutes', 'Prensa de piernas 45°': 'legs_quads', 'Extensiones de cuádriceps': 'legs_quads', 'Curl femoral tumbado': 'legs_hamstrings', 'Elevación de talones (Gemelos)': 'legs_calves', 'Hip Thrust': 'legs_glutes',
+  'Zancadas con mancuernas': 'legs_quads_glutes', 'Sentadilla búlgara': 'legs_quads_glutes', 'Peso muerto rumano': 'legs_hamstrings_glutes', 'Sentadilla frontal': 'legs_quads_glutes', 'Zancada caminando': 'legs_quads_glutes', 'Puente de glúteos': 'legs_glutes', 'Sentadilla goblet': 'legs_quads_glutes', 'Curl femoral sentado': 'legs_hamstrings', 'Peso muerto sumo': 'legs_hamstrings_glutes', 'Buenos días': 'legs_hamstrings_glutes', 'Patada de glúteo en polea': 'legs_glutes',
   'Press militar con barra': 'shoulders_front', 'Elevaciones laterales con mancuernas': 'shoulders_side', 'Press Arnold': 'shoulders_front_side', 'Pájaros (Posteriores)': 'shoulders_rear', 'Encogimientos de hombros con mancuernas': 'back_traps',
+  'Press de hombros con mancuernas': 'shoulders_front', 'Elevación frontal con mancuernas': 'shoulders_front', 'Face pull': 'shoulders_rear', 'Elevación lateral en polea': 'shoulders_side', 'Pájaro con mancuernas inclinado': 'shoulders_rear', 'Remo al mentón': 'shoulders_side',
   'Curl de bíceps con barra': 'arms_biceps', 'Curl de bíceps con mancuernas tipo martillo': 'arms_biceps', 'Curl de bíceps en polea': 'arms_biceps', 'Extensiones de tríceps en polea': 'arms_triceps', 'Press francés con barra Z': 'arms_triceps', 'Extensiones de tríceps por encima de la cabeza': 'arms_triceps',
-  'Plancha abdominal': 'core_abs', 'Elevación de piernas colgado': 'core_lower_abs', 'Crunch en polea': 'core_abs'
+  'Curl concentrado': 'arms_biceps', 'Curl en banco Scott': 'arms_biceps', 'Press francés con mancuerna': 'arms_triceps', 'Fondos en banco (Tríceps)': 'arms_triceps', 'Patada de tríceps': 'arms_triceps', 'Press cerrado con barra': 'arms_triceps', 'Curl inverso con barra': 'arms_biceps',
+  'Plancha abdominal': 'core_abs', 'Elevación de piernas colgado': 'core_lower_abs', 'Crunch en polea': 'core_abs',
+  'Rueda abdominal': 'core_abs', 'Elevación de piernas en banco': 'core_lower_abs', 'Giro ruso': 'core_abs', 'Plancha lateral': 'core_abs'
 };
 
 function getExerciseIconKey(exName){
@@ -425,25 +432,23 @@ function getExerciseIconKey(exName){
 // ese músculo tal como está dibujado en la imagen de referencia: se generó separando automáticamente
 // cada forma cerrada por las líneas del dibujo (segmentación por componentes conexas), así el color
 // nunca se sale del contorno real ni se mezcla en un blob, a diferencia de los óvalos calculados a mano.
-const FRONT_REGIONS = ['chest_upper', 'chest_lower', 'shoulders', 'arms', 'abs', 'quads', 'calves'];
-const BACK_REGIONS = ['traps', 'shoulders', 'lats', 'backmid', 'arms', 'glutes', 'hamstrings', 'calves'];
+const FRONT_REGIONS = ['chest', 'shoulders', 'arms', 'abs', 'quads'];
+const BACK_REGIONS = ['traps', 'upperback', 'espaldabaja', 'shoulders', 'lats', 'arms', 'glutes', 'hamstrings', 'calves'];
 
-// Qué región de cada vista prende cada key de EXERCISE_ICON_MAP / getExerciseIconKey. El pectoral
-// superior (inclinado) se separa del medio/inferior (plano, declinado, fondos), y el trapecio se
-// separa del resto de la espalda y del hombro.
+// Qué región de cada vista prende cada key de EXERCISE_ICON_MAP / getExerciseIconKey. El trapecio se
+// separa del resto de la espalda y del hombro; el pecho queda unificado (sin superior/inferior).
 const FRONT_KEY_REGIONS = {
-  chest_upper: ['chest_upper'], chest_mid: ['chest_lower'], chest_lower: ['chest_lower'],
+  chest_upper: ['chest'], chest_mid: ['chest'], chest_lower: ['chest'],
   shoulders_front: ['shoulders'], shoulders_side: ['shoulders'], shoulders_front_side: ['shoulders'],
   arms_biceps: ['arms'],
   legs_quads: ['quads'], legs_quads_glutes: ['quads'],
-  legs_calves: ['calves'],
   core_abs: ['abs'], core_lower_abs: ['abs']
 };
 const BACK_KEY_REGIONS = {
-  back_lats: ['lats'], back_mid: ['backmid'], back_traps: ['traps'],
+  back_lats: ['lats'], back_mid: ['upperback'], back_traps: ['traps'],
   shoulders_rear: ['shoulders'],
   arms_triceps: ['arms'],
-  legs_hamstrings: ['hamstrings'], legs_hamstrings_glutes: ['hamstrings','glutes'],
+  legs_hamstrings: ['hamstrings'], legs_hamstrings_glutes: ['hamstrings','glutes','espaldabaja'],
   legs_glutes: ['glutes'], legs_quads_glutes: ['glutes'],
   legs_calves: ['calves']
 };
