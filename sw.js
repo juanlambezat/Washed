@@ -1,5 +1,5 @@
-const CACHE_NAME = 'barra-v2';
-const ASSETS = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
+const CACHE_NAME = 'barra-v3';
+const ASSETS = ['./index.html', './styles.css', './app.js', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
   self.skipWaiting();
