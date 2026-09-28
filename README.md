@@ -46,17 +46,13 @@ No requiere backend ni cuenta: todo se guarda en el propio dispositivo.
 - Modo claro/oscuro y 5 colores de acento.
 - Unidad de peso kg/lb.
 
-## Cómo probarla
+## ¿Cómo la utilizo?
 
-No hace falta instalar nada. Como es solo HTML/CSS/JS estático, alcanza con servirla desde cualquier servidor simple (abrirla como `file://` directo no funciona bien por las restricciones de los navegadores con módulos/Service Worker):
+No hace falta instalar nada. Como es solo HTML/CSS/JS estático, alcanza con ingresar al siguiente enlace para acceder a la página tanto de manera móvil o en escritorio.
 
-```bash
-python -m http.server 8080
-```
+**[Ingresar a la aplicación Washed.](https://juanlambezat.github.io/Washed/)**
 
-y abrir `http://localhost:8080` en el navegador.
-
-Para instalarla como app (PWA) hay que servirla por **https** (o `localhost`) y usar la opción "Instalar" / "Agregar a pantalla de inicio" del navegador.
+Además, al ser una Aplicación Web Progresiva (PWA), puedes instalarla en tu dispositivo (celular o computadora) como si fuera una app nativa. Solo necesitas abrir el enlace anterior desde tu navegador y buscar la opción "Instalar" o "Agregar a la pantalla de inicio" en el menú.
 
 ## Estructura del proyecto
 
