@@ -88,13 +88,13 @@ function renderMuscleView(view, activeRegions){
   let defs = '', rects = '';
   regions.filter(r => activeRegions.has(r)).forEach(r => {
     const maskId = `muscleMask${muscleMaskUid++}`;
-    defs += `<mask id="${maskId}" maskUnits="userSpaceOnUse" x="0" y="0" width="465" height="825"><image href="musculos/muscle-${view}-${r}.png" x="0" y="0" width="465" height="825"/></mask>`;
+    defs += `<mask id="${maskId}" maskUnits="userSpaceOnUse" x="0" y="0" width="465" height="825"><image href="musculos/muscle-${view}-${r}.png" xlink:href="musculos/muscle-${view}-${r}.png" x="0" y="0" width="465" height="825"/></mask>`;
     rects += `<rect width="465" height="825" fill="${color(r)}" mask="url(#${maskId})"/>`;
   });
-  return `<svg class="muscle-figure-svg" viewBox="0 0 465 825" xmlns="http://www.w3.org/2000/svg">
+  return `<svg class="muscle-figure-svg" viewBox="0 0 465 825" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <defs>${defs}</defs>
     ${rects}
-    <image href="musculos/muscle-${view}.png" x="0" y="0" width="465" height="825"/>
+    <image href="musculos/muscle-${view}.png" xlink:href="musculos/muscle-${view}.png" x="0" y="0" width="465" height="825"/>
   </svg>`;
 }
 
@@ -1183,8 +1183,6 @@ function renderTrain(){
           <h3>${escapeHtml(ex.name)}</h3>
         </div>
         <div class="exercise-actions-top">
-          <button class="btn-icon" data-video-ex="${exIdx}" title="Ver video de ejecución" style="width:26px; height:26px; font-size:12px;">🎥</button>
-          <button class="btn-icon ${isSuperset ? 'active-toggle' : ''}" data-toggle-superset="${exIdx}" title="${isSuperset ? 'Quitar de la superserie' : 'Agregar ejercicio en superserie'}" style="width:26px; height:26px; font-size:12px;">🔗</button>
           <button class="btn-icon" data-toggle-collapse="${exIdx}" style="width:26px; height:26px; font-size:12px;">${ex.collapsed ? '▼' : '▲'}</button>
           <button class="btn-icon" data-remove-ex="${exIdx}" style="width:26px; height:26px; font-size:13px;">✕</button>
         </div>
@@ -1192,7 +1190,7 @@ function renderTrain(){
 
     if(!ex.collapsed){
       const modeLabels = getModeLabels(ex.name), isTimed = getExerciseMode(ex.name) === 'time';
-      html += `<div class="ex-rest-row"><button class="rest-pill ${(ex.restSeconds ?? 90) === 0 ? 'is-off' : ''}" data-edit-rest="${exIdx}">⏱️ Descanso: ${formatRestLabel(ex.restSeconds ?? 90)}</button>${isTimed ? `<button class="rest-pill" data-stopwatch-ex="${exIdx}">⏲️ Cronometrar serie</button>` : ''}<button class="rest-pill" data-replace-ex="${exIdx}">🔄 Reemplazar</button></div>
+      html += `<div class="ex-rest-row"><button class="rest-pill ${(ex.restSeconds ?? 90) === 0 ? 'is-off' : ''}" data-edit-rest="${exIdx}">⏱️ Descanso: ${formatRestLabel(ex.restSeconds ?? 90)}</button>${isTimed ? `<button class="rest-pill" data-stopwatch-ex="${exIdx}">⏲️ Cronometrar serie</button>` : ''}<button class="rest-pill" data-replace-ex="${exIdx}">🔄 Reemplazar</button><button class="rest-pill" data-video-ex="${exIdx}">🎥 Video</button><button class="rest-pill ${isSuperset ? 'active-toggle' : ''}" data-toggle-superset="${exIdx}">🔗 ${isSuperset ? 'Quitar superserie' : 'Superserie'}</button></div>
         <input type="text" class="exercise-note-input" placeholder="Añadir nota al ejercicio..." value="${escapeHtml(ex.note || '')}" data-ex-note="${exIdx}">
         <div class="set-table-head"><span>S</span><span>Anterior</span><span>${modeLabels.weightLabel.replace('KG', weightUnit.toUpperCase())}</span><span>${isTimed ? 'Seg' : 'Reps'}</span><span>✓</span></div>`;
 
@@ -1734,13 +1732,11 @@ function renderRoutineEditor(){
           <div class="drag-handle" data-drag-handle="${idx}" title="Mantené presionado para reordenar"><span></span><span></span><span></span><span></span><span></span><span></span></div>
           <div class="muscle-mini-icon" style="width:30px; height:30px;">${getExerciseMiniFigure(re.name)}</div>
           <div class="routine-ex-name">${escapeHtml(re.name)}</div>
-          <button class="btn-icon" data-video-routine-ex="${escapeHtml(re.name)}" title="Ver video de ejecución" style="width:26px; height:26px; font-size:12px;">🎥</button>
-          <button class="btn-icon ${isSuperset ? 'active-toggle' : ''}" data-toggle-routine-superset="${idx}" title="${isSuperset ? 'Quitar de la superserie' : 'Agregar ejercicio en superserie'}" style="width:26px; height:26px; font-size:12px;">🔗</button>
           <button class="btn-icon" data-toggle-routine-collapse="${idx}" style="width:26px; height:26px; font-size:12px;">${re.collapsed ? '▼' : '▲'}</button>
           <button class="btn-icon" data-remove-routine-ex="${idx}" style="width:26px; height:26px; font-size:13px;">✕</button>
         </div>
         ${re.collapsed ? '' : `
-        <div class="ex-rest-row"><button class="rest-pill ${(re.restSeconds ?? 90) === 0 ? 'is-off' : ''}" data-edit-routine-rest="${idx}">⏱️ Descanso: ${formatRestLabel(re.restSeconds ?? 90)}</button><button class="rest-pill" data-replace-routine-ex="${idx}">🔄 Reemplazar</button></div>
+        <div class="ex-rest-row"><button class="rest-pill ${(re.restSeconds ?? 90) === 0 ? 'is-off' : ''}" data-edit-routine-rest="${idx}">⏱️ Descanso: ${formatRestLabel(re.restSeconds ?? 90)}</button><button class="rest-pill" data-replace-routine-ex="${idx}">🔄 Reemplazar</button><button class="rest-pill" data-video-routine-ex="${escapeHtml(re.name)}">🎥 Video</button><button class="rest-pill ${isSuperset ? 'active-toggle' : ''}" data-toggle-routine-superset="${idx}">🔗 ${isSuperset ? 'Quitar superserie' : 'Superserie'}</button></div>
         <input type="text" class="exercise-note-input" placeholder="Añadir nota al ejercicio..." value="${escapeHtml(re.note || '')}" data-routine-ex-note="${idx}">
         <div class="set-table-head"><span>S</span><span>Previo</span><span>${getModeLabels(re.name).weightLabel.replace('KG', weightUnit.toUpperCase())}</span><span>${getExerciseMode(re.name) === 'time' ? 'Seg' : 'Reps'}</span><span></span></div>
         ${re.sets.map((s, sIdx) => {
